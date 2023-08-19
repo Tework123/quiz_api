@@ -22,6 +22,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'quiz.apps.QuizConfig',
+    'register.apps.RegisterConfig',
 
 ]
 
@@ -93,6 +94,12 @@ REST_FRAMEWORK = {
         # надо коментить нижнюю строку, чтобы убрать графический апи
         'rest_framework.renderers.BrowsableAPIRenderer',
     ],
+
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+
     # здесь по умолчанию ко всем данным не нужна авторизация, но можно AllowAny менять
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
