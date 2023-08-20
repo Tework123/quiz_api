@@ -1,12 +1,14 @@
 from django.contrib.auth.models import User, Group
 from django.db import models
+from django.urls import reverse
 
 
 class Quiz(models.Model):
     name = models.CharField(max_length=100)
+    slug = models.SlugField(max_length=100, unique=True, verbose_name="URL", null=True)
     date_start = models.DateTimeField(auto_now_add=True)
     date_stop = models.DateTimeField(null=True)
-    description = models.TextField(blank=True)
+    description = models.TextField(blank=False)
     creator = models.ForeignKey(User, on_delete=models.PROTECT)
 
     # так как он видит двух user добавляем другое имя
@@ -20,7 +22,7 @@ class Quiz(models.Model):
 
 
 class Question(models.Model):
-    description = models.TextField(blank=True, max_length=500)
+    description = models.TextField(blank=False, max_length=500)
     quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE)
 
     def __str__(self):
@@ -28,9 +30,14 @@ class Question(models.Model):
 
 
 class Answer(models.Model):
-    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    description = models.TextField(blank=True, max_length=500)
+    question = models.ForeignKey(Question, related_name='answer_list', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.description
 
 
 class ResultAnswer(models.Model):
     result = models.IntegerField()
-    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    user = models.ManyToManyField(User, related_name='user')
+    answer = models.ForeignKey(Answer, related_name='result_answer_list', on_delete=models.CASCADE)

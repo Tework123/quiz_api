@@ -4,8 +4,7 @@ from quiz.views import QuizApiViewList, QuestionApiViewList, QuizApiView, Answer
 
 urlpatterns = [
     path('', QuizApiViewList.as_view()),
-    path('<int:pk>', QuizApiView.as_view()),
-    path('<int:pk>/questions', QuestionApiViewList.as_view()),
-    path('<int:pk>/questions/<int:id>', AnswerApiView.as_view())
-
+    path('<slug:slug>/', QuizApiView.as_view()),
+    path('<slug:slug>/questions', QuestionApiViewList.as_view()),
+    path('<slug:slug>/questions/<int:pk>', AnswerApiView.as_view())
 ]
