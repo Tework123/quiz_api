@@ -17,17 +17,10 @@ class QuizSerializer(serializers.ModelSerializer):
         lookup_field = 'slug'
 
 
-# class QuestionAnswerSerializer(serializers.ModelSerializer):
-#     question_id = serializers.RelatedField
-#
-#     class Meta:
-#         model = Answer
-#         fields = '__all__'
-
 class QuestionSerializer0(serializers.ModelSerializer):
     class Meta:
         model = ResultAnswer
-        fields = ['id', 'user','result']
+        fields = ['id', 'user_id']
 
 
 class QuestionSerializer1(serializers.ModelSerializer):
@@ -41,21 +34,25 @@ class QuestionSerializer1(serializers.ModelSerializer):
 class QuestionSerializer2(serializers.ModelSerializer):
     answer_list = QuestionSerializer1(many=True, read_only=True)
 
+    # добавляем поле user_id
+    # user_id = serializers.SerializerMethodField(method_name="get_user_id")
+
+    # def get_user_id(self, obj):
+    #     user_id = self.context['request'].user.id
+    #     return user_id
+
     class Meta:
         model = Question
         fields = ['id', 'description', 'answer_list']
-        # lookup_field = 'slug'
 
 
 class AnswerGetSerializer(serializers.Serializer):
-    id = serializers.IntegerField()
-    description = serializers.CharField()
-    question_id = serializers.IntegerField()
+    answer_id = serializers.IntegerField()
 
 
-class AnswerSerializer(serializers.Serializer):
-    question_id = serializers.IntegerField()
-
-    def create(self, validated_data):
-        print(validated_data)
-        return Answer.objects.create(**validated_data)
+# class AnswerSerializer(serializers.Serializer):
+#     question_id = serializers.IntegerField()
+#
+#     def create(self, validated_data):
+#         print(validated_data)
+#         return Answer.objects.create(**validated_data)

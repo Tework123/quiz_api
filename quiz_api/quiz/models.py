@@ -38,6 +38,8 @@ class Answer(models.Model):
 
 
 class ResultAnswer(models.Model):
-    result = models.IntegerField()
-    user = models.ManyToManyField(User, related_name='user')
+    user = models.ForeignKey(User, related_name='user',  on_delete=models.CASCADE, null=True)
     answer = models.ForeignKey(Answer, related_name='result_answer_list', on_delete=models.CASCADE)
+
+    # def __str__(self):
+    #     return self.answer
