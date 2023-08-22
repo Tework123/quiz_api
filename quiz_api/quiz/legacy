@@ -1,0 +1,36 @@
+        # фронт берет этот user_id и прокручивает циклы таким образом:
+        # for questions in response.data:
+        #     for question in questions.items():
+        #         if question[0] == 'description' or question[0] == 'id':
+        #             print(f'question_info: {question[1]}')
+        #         for answers in question:
+        #             if type(answers) == list:
+        #                 for answer in answers:
+        #                     print(f'answer_id: {answer["id"]}')
+        #                     print(f'answer_description: {answer["description"]}')
+        #                     for user in answer['result_answer_list']:
+        #                         if user['user_id'] == self.request.user.id:
+        #                             print('Отмечаю тебя красненьким')
+        #                         print(f'user_id: {user["user_id"]}')
+        #     print('_________________________________')
+
+
+
+        #     def post(self, request, *args, **kwargs):
+#         print(request.data['id'])
+#         id = request.data['id']
+#
+#         answer = Answer.objects.create(question_id=id)
+#         return Response({'new_answer': AnswerSerializer(answer).data})
+
+# data = Question.objects.annotate(
+# answers=StringAgg(Cast('answer__description',
+#                        output_field=CharField()),
+#                   delimiter=', ')).filter(quiz__slug=slug)
+
+# SELECT * FROM quiz_quiz
+# FULL OUTER JOIN quiz_question USING("id")
+# FULL OUTER JOIN quiz_answer USING("id")
+# FULL OUTER JOIN quiz_resultanswer USING("id")
+# FULL OUTER JOIN quiz_resultanswer_user USING("id")
+# WHERE quiz_quiz.slug = 'dota2' OR (quiz_quiz.slug = 'dota2' AND quiz_resultanswer_user.user_id=1);
