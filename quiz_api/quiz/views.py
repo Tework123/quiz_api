@@ -99,4 +99,4 @@ class QuizDetailStatistics(ListAPIView):
         response = Question.objects.filter(quiz__slug=slug)
         return response
 
-dasdasd
+dasdasddd
