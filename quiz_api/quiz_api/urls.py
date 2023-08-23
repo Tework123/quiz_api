@@ -10,7 +10,9 @@ urlpatterns = [
     # регистрация
     path('api/v1/register/', include('register.urls')),
 
-    path('api/v1/quiz/', include('quiz.urls'))
+    path('api/v1/quiz/', include('quiz.urls')),
+
+    path("__debug__/", include("debug_toolbar.urls")),
 
     # path(теперь надо странички составить с нужными ручками)
 

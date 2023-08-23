@@ -1,15 +1,16 @@
-from django.contrib.auth.models import User
 from rest_framework import serializers
 
 from quiz.models import Quiz, Question, Answer, ResultAnswer
 
 
+# ''
 class QuizListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Quiz
         fields = '__all__'
 
 
+# <slug:slug>/
 class QuizDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Quiz
@@ -17,12 +18,14 @@ class QuizDetailSerializer(serializers.ModelSerializer):
         lookup_field = 'slug'
 
 
+# <slug:slug>/questions
 class QuestionListSerializerFirst(serializers.ModelSerializer):
     class Meta:
         model = ResultAnswer
         fields = ['id', 'user_id']
 
 
+# <slug:slug>/questions
 class QuestionListSerializerSecond(serializers.ModelSerializer):
     result_answer_list = QuestionListSerializerFirst(many=True, read_only=True)
 
@@ -31,41 +34,72 @@ class QuestionListSerializerSecond(serializers.ModelSerializer):
         fields = ['id', 'description', 'result_answer_list']
 
 
+# <slug:slug>/questions
 class QuestionListSerializerThird(serializers.ModelSerializer):
     answer_list = QuestionListSerializerSecond(many=True, read_only=True)
-
-    # добавляем поле user_id
-    # user_id = serializers.SerializerMethodField(method_name="get_user_id")
-
-    # def get_user_id(self, obj):
-    #     user_id = self.context['request'].user.id
-    #     return user_id
 
     class Meta:
         model = Question
         fields = ['id', 'description', 'answer_list']
 
 
+# statistics/
 class QuizListStatisticsSerializer(serializers.Serializer):
     name = serializers.CharField()
     description = serializers.CharField()
     questions = serializers.IntegerField()
 
 
-class Quiz2(serializers.ModelSerializer):
+# statistics/<slug:slug>/
+class QuizDetailStatisticsSerializer1(serializers.ModelSerializer):
+    class Meta:
+        model = ResultAnswer
+        fields = ['user_id']
+
+
+# statistics/<slug:slug>/
+class QuizDetailStatisticsSerializer2(serializers.ModelSerializer):
+    result_answer_list = QuizDetailStatisticsSerializer1(many=True, read_only=True)
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['sum_one_answer'] = len(data['result_answer_list'])
+
+        # result_answer_list = Quiz1(many=True, read_only=True)
+        return data
+
     class Meta:
         model = Answer
-        fields = ['id', 'description']
+        fields = ['id', 'description', 'result_answer_list']
 
 
+# statistics/<slug:slug>/
 class QuizDetailStatisticsSerializer(serializers.ModelSerializer):
-    answer_list = Quiz2(many=True)
+    answer_list = QuizDetailStatisticsSerializer2(many=True, read_only=True)
+
+    # считывает информацию из внутренних сериализаторов и выдает проценты
+    def to_representation(self, instance):  # noqa
+        data = super().to_representation(instance)
+        sum_question = 0
+        for i in data.items():
+            if i[0] == 'answer_list':
+                for j in i:
+                    if isinstance(j, list):
+                        for k in j:
+                            sum_question += k['sum_one_answer']
+        data['sum_question'] = sum_question
+
+        for i in data.items():
+            if i[0] == 'sum_question':
+                sum_question = i[1]
+            if i[0] == 'answer_list':
+                for j in i:
+                    if isinstance(j, list):
+                        for k in j:
+                            percent = k['sum_one_answer'] / sum_question
+                            k['percent'] = round(percent * 100, 2)
+        return data
 
     class Meta:
         model = Question
         fields = ['id', 'description', 'answer_list']
-
-# считаем количество пользователей, которое ответило на каждый вопрос, у каждого вопроса в сумме 100%
-# надо их раскидать по ответам, так у каждого вопроса
-# выводим вопрос, ответ, процент ответа, ответ, процент ответа и так далее
-# может в сериализаторах это можно сделать

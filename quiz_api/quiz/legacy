@@ -34,3 +34,19 @@
 # FULL OUTER JOIN quiz_resultanswer USING("id")
 # FULL OUTER JOIN quiz_resultanswer_user USING("id")
 # WHERE quiz_quiz.slug = 'dota2' OR (quiz_quiz.slug = 'dota2' AND quiz_resultanswer_user.user_id=1);
+
+
+
+response = Question.objects.annotate(
+            answers_people=Window(expression=Count('answer_list__result_answer_list__user'),
+                                  partition_by=[F('description')])).annotate(
+            sum=Window(expression=Sum('answer_list__result_answer_list__user'),
+                       partition_by=[F('answer_list__result_answer_list__user')])).annotate(
+            percentage=ExpressionWrapper(
+                F('answers_people') * 100.0 / F('sum'),
+                output_field=FloatField())).filter(quiz__slug=slug)
+
+
+# response = Question.objects.values('description', 'answer_list__description').annotate(
+        #     answers_people=Count('answer_list__result_answer_list__user'),
+        #     sum=Sum('answer_list__result_answer_list__user'))

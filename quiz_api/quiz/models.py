@@ -1,6 +1,5 @@
 from django.contrib.auth.models import User, Group
 from django.db import models
-from django.urls import reverse
 
 
 class Quiz(models.Model):
@@ -38,8 +37,5 @@ class Answer(models.Model):
 
 
 class ResultAnswer(models.Model):
-    user = models.ForeignKey(User, related_name='user',  on_delete=models.CASCADE, null=True)
+    user = models.ForeignKey(User, related_name='user', on_delete=models.CASCADE, null=True)
     answer = models.ForeignKey(Answer, related_name='result_answer_list', on_delete=models.CASCADE)
-
-    # def __str__(self):
-    #     return self.answer
