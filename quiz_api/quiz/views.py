@@ -1,13 +1,16 @@
+from django.contrib.auth.models import Group
 from django.db.models import Count
-from rest_framework.generics import RetrieveAPIView, ListAPIView
+from rest_framework.generics import RetrieveAPIView, ListAPIView, ListCreateAPIView, \
+    RetrieveUpdateDestroyAPIView
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
-from quiz.models import Quiz, Question, ResultAnswer
+from quiz.models import Quiz, Question, ResultAnswer, Answer
 from quiz.serializers import (QuizListSerializer, QuizDetailSerializer,
                               QuestionListSerializerThird,
-                              QuizListStatisticsSerializer, QuizDetailStatisticsSerializer)
+                              QuizListStatisticsSerializer, QuizDetailStatisticsSerializer,
+                              CreateQuizSerializer,
+                              CreateQuestionSerializer, CreateAnswerSerializer)
 
 
 # ''
@@ -98,3 +101,111 @@ class QuizDetailStatistics(ListAPIView):
 
         response = Question.objects.filter(quiz__slug=slug)
         return response
+
+
+# create_quiz/
+# создает опрос(как админка)
+class CreateQuiz(ListCreateAPIView):
+    queryset = Quiz.objects.all()
+    serializer_class = CreateQuizSerializer
+
+
+# update_quiz/<slug:slug>/
+# обновляет опрос(как админка)
+class UpdateQuiz(RetrieveUpdateDestroyAPIView):
+    serializer_class = CreateQuizSerializer
+    lookup_field = 'slug'
+
+    def get_queryset(self):
+        slug = self.kwargs.get(self.lookup_field)
+        return Quiz.objects.filter(slug=slug)
+
+    def update(self, request, *args, **kwargs):
+        slug = self.kwargs.get(self.lookup_field)
+
+        Quiz.objects.filter(slug=slug).update(name=self.request.data['name'],
+                                              slug=self.request.data['slug'],
+                                              date_stop=self.request.data['date_stop'],
+                                              description=self.request.data['description'],
+                                              )
+
+        # для обновления поля many_to_many
+        # мы меняем доступные группы для теста, достаем нужный quiz, введенную группу
+        # и используем add
+        quiz = Quiz.objects.get(slug=self.request.data['slug'])
+        group = Group.objects.get(id=self.request.data['group'])
+        quiz.group.add(group)
+
+        return Response({'data': 'Опрос изменен успешно'})
+
+    def delete(self, request, *args, **kwargs):
+        slug = self.kwargs.get(self.lookup_field)
+        Quiz.objects.filter(slug=slug).delete()
+        return Response({'data': 'Опрос удален успешно'})
+
+
+# create_question/<slug:slug>/
+# создает вопрос(как админка)
+class CreateQuestion(ListCreateAPIView):
+    serializer_class = CreateQuestionSerializer
+    lookup_field = 'slug'
+
+    def get_queryset(self):
+        slug = self.kwargs.get(self.lookup_field)
+        return Question.objects.filter(quiz__slug=slug)
+
+    def create(self, request, *args, **kwargs):
+        slug = self.kwargs.get(self.lookup_field)
+        quiz_object = Quiz.objects.get(slug=slug)
+        Question.objects.create(description=request.data['description'], quiz=quiz_object)
+        return Response('Вопрос создан успешно')
+
+
+# update_question/<slug:slug>/<int:pk>/
+# обновляет вопрос(как админка)
+class UpdateQuestion(RetrieveUpdateDestroyAPIView):
+    serializer_class = CreateQuestionSerializer
+
+    def get_queryset(self):
+        return Question.objects.filter(pk=self.kwargs['pk'])
+
+    def update(self, request, *args, **kwargs):
+        (Question.objects.filter(pk=self.kwargs['pk'])
+         .update(description=self.request.data['description']))
+        return Response({'data': 'Вопрос изменен успешно'})
+
+    def delete(self, request, *args, **kwargs):
+        Question.objects.filter(pk=self.kwargs['pk']).delete()
+        return Response({'data': 'Вопрос удален успешно'})
+
+
+# create_answer/<int:pk>/
+# создает ответ(как админка)
+class CreateAnswer(ListCreateAPIView):
+    serializer_class = CreateAnswerSerializer
+
+    def get_queryset(self):
+        return Answer.objects.filter(question__pk=self.kwargs['pk'])
+
+    def create(self, request, *args, **kwargs):
+        question_object = Question.objects.get(pk=self.kwargs['pk'])
+        Answer.objects.create(description=request.data['description'], question=question_object)
+        return Response('Ответ создан успешно')
+
+
+# update_answer/<int:pk>/
+# обновляет ответ(как админка)
+class UpdateAnswer(RetrieveUpdateDestroyAPIView):
+    serializer_class = CreateAnswerSerializer
+
+    def get_queryset(self):
+        return Answer.objects.filter(pk=self.kwargs['pk'])
+
+    def update(self, request, *args, **kwargs):
+        (Answer.objects.filter(pk=self.kwargs['pk'])
+         .update(description=self.request.data['description']))
+        return Response({'data': 'Ответ изменен успешно'})
+
+    def delete(self, request, *args, **kwargs):
+        Answer.objects.filter(pk=self.kwargs['pk']).delete()
+        return Response({'data': 'Ответ удален успешно'})

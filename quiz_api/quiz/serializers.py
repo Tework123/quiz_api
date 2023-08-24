@@ -103,3 +103,27 @@ class QuizDetailStatisticsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Question
         fields = ['id', 'description', 'answer_list']
+
+
+# create_quiz/
+class CreateQuizSerializer(serializers.ModelSerializer):
+    # автоматически связывает модель с юзером, который ее создал
+    creator = serializers.HiddenField(default=serializers.CurrentUserDefault())
+
+    class Meta:
+        model = Quiz
+        fields = ['name', 'slug', 'date_stop', 'description', 'creator', 'group']
+
+
+# create_question/<slug:slug>/
+class CreateQuestionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Question
+        fields = ['id', 'pk', 'description']
+
+
+# create_answer/<int:pk>/
+class CreateAnswerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Answer
+        fields = ['id', 'pk', 'description']
