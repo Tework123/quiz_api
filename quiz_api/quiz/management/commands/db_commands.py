@@ -64,7 +64,7 @@ class Command(BaseCommand):
             name_join = name.replace(' ', '')
 
             user = User.objects.create_user(email=name_join + '@mail.ru',
-                                            username=name, password=name_join)
+                                            username=name_join, password=name_join)
 
             # добавляем пользователей в группы
             user.groups.add(random.choice(groups_objects))

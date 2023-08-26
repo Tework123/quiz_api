@@ -107,12 +107,14 @@ class QuizDetailStatisticsSerializer(serializers.ModelSerializer):
 
 # create_quiz/
 class CreateQuizSerializer(serializers.ModelSerializer):
-    # автоматически связывает модель с юзером, который ее создал
-    creator = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    # автоматически связывает модель с юзером, который ее создал, только без def create работает
+    # creator = serializers.HiddenField(default=serializers.CurrentUserDefault())
 
+    # этот класс отвечает только за поля, которые показываются для ввода пользователю
+    # если переопределен create, то с добавляемыми полями он не связан
     class Meta:
         model = Quiz
-        fields = ['name', 'slug', 'date_stop', 'description', 'creator', 'group']
+        fields = ['name', 'slug', 'date_stop', 'description', 'group']
 
 
 # create_question/<slug:slug>/

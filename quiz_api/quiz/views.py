@@ -6,6 +6,7 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from quiz.models import Quiz, Question, ResultAnswer, Answer
+from quiz.permissions import IsGroup
 from quiz.serializers import (QuizListSerializer, QuizDetailSerializer,
                               QuestionListSerializerThird,
                               QuizListStatisticsSerializer, QuizDetailStatisticsSerializer,
@@ -16,6 +17,7 @@ from quiz.serializers import (QuizListSerializer, QuizDetailSerializer,
 # ''
 # показывает все опросы
 class QuizList(ListAPIView):
+    permission_classes = [IsAuthenticated]
     serializer_class = QuizListSerializer
 
     def get_queryset(self):
@@ -23,8 +25,9 @@ class QuizList(ListAPIView):
 
 
 # <slug:slug>/
-# показывает информация о конкретном опросе
+# показывает информацию о конкретном опросе
 class QuizDetail(RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
     serializer_class = QuizDetailSerializer
     lookup_field = 'slug'
 
@@ -36,9 +39,9 @@ class QuizDetail(RetrieveAPIView):
 # <slug:slug>/questions
 # показывает все вопросы, вместе с ответами конкретного пользователя
 class QuestionList(ListAPIView):
+    permission_classes = [IsAuthenticated, IsGroup]
     serializer_class = QuestionListSerializerThird
     lookup_field = 'slug'
-    permission_classes = [IsAuthenticated]
 
     # добавляем в начало возвращаемого из сериализатора списка user_id
     def list(self, request, *args, **kwargs):
@@ -48,13 +51,14 @@ class QuestionList(ListAPIView):
 
     def get_queryset(self):
         slug = self.kwargs.get(self.lookup_field)
+
         return Question.objects.filter(quiz__slug=slug)
 
 
-# <slug:slug>/questions/<int:pk>
+# <slug:slug>/questions/<int:pk>w
 # добавляет ответы пользователя
 class AddAnswer(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsGroup]
 
     def post(self, request, *args, **kwargs):
         old_answer = ResultAnswer.objects.filter(user=self.request.user, answer_id=kwargs['pk'])
@@ -79,7 +83,7 @@ class AddAnswer(APIView):
 class QuizListStatistics(ListAPIView):
     serializer_class = QuizListStatisticsSerializer
 
-    permission_classes = [IsAuthenticated, IsAdminUser]
+    permission_classes = [IsAdminUser]
 
     def get_queryset(self):
         # считает количество уникальных пользователей,
@@ -93,6 +97,7 @@ class QuizListStatistics(ListAPIView):
 # показывает статистику с процентами на каждый ответ в каждом вопросе,
 # выводит все вопросы выбранного опроса
 class QuizDetailStatistics(ListAPIView):
+    permission_classes = [IsAdminUser]
     serializer_class = QuizDetailStatisticsSerializer
     lookup_field = 'slug'
 
@@ -106,13 +111,27 @@ class QuizDetailStatistics(ListAPIView):
 # create_quiz/
 # создает опрос(как админка)
 class CreateQuiz(ListCreateAPIView):
+    permission_classes = [IsAdminUser]
     queryset = Quiz.objects.all()
     serializer_class = CreateQuizSerializer
+
+    def create(self, request, *args, **kwargs):
+        quiz = Quiz.objects.create(name=request.data['name'],
+                                   slug=request.data['slug'],
+                                   date_stop=request.data['date_stop'],
+                                   description=request.data['description'],
+                                   creator=self.request.user)
+
+        for group in request.data.getlist('group'):
+            quiz.group.add(group)
+            # group = Group.objects.get(id=self.request.data['group'])
+        return Response('Опрос создан успешно')
 
 
 # update_quiz/<slug:slug>/
 # обновляет опрос(как админка)
 class UpdateQuiz(RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsAdminUser]
     serializer_class = CreateQuizSerializer
     lookup_field = 'slug'
 
@@ -133,8 +152,9 @@ class UpdateQuiz(RetrieveUpdateDestroyAPIView):
         # мы меняем доступные группы для теста, достаем нужный quiz, введенную группу
         # и используем add
         quiz = Quiz.objects.get(slug=self.request.data['slug'])
-        group = Group.objects.get(id=self.request.data['group'])
-        quiz.group.add(group)
+        groups = request.data.getlist('group')
+        for group in groups:
+            quiz.group.add(group)
 
         return Response({'data': 'Опрос изменен успешно'})
 
@@ -147,6 +167,7 @@ class UpdateQuiz(RetrieveUpdateDestroyAPIView):
 # create_question/<slug:slug>/
 # создает вопрос(как админка)
 class CreateQuestion(ListCreateAPIView):
+    permission_classes = [IsAdminUser]
     serializer_class = CreateQuestionSerializer
     lookup_field = 'slug'
 
@@ -164,6 +185,7 @@ class CreateQuestion(ListCreateAPIView):
 # update_question/<slug:slug>/<int:pk>/
 # обновляет вопрос(как админка)
 class UpdateQuestion(RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsAdminUser]
     serializer_class = CreateQuestionSerializer
 
     def get_queryset(self):
@@ -182,6 +204,7 @@ class UpdateQuestion(RetrieveUpdateDestroyAPIView):
 # create_answer/<int:pk>/
 # создает ответ(как админка)
 class CreateAnswer(ListCreateAPIView):
+    permission_classes = [IsAdminUser]
     serializer_class = CreateAnswerSerializer
 
     def get_queryset(self):
@@ -196,6 +219,7 @@ class CreateAnswer(ListCreateAPIView):
 # update_answer/<int:pk>/
 # обновляет ответ(как админка)
 class UpdateAnswer(RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsAdminUser]
     serializer_class = CreateAnswerSerializer
 
     def get_queryset(self):
