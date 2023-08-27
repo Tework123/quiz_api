@@ -28,8 +28,6 @@ class Command(BaseCommand):
         count_answers = kwargs['count_answers']
         count_users_answers = kwargs['count_users_answers']
 
-        print(count_users, count_questions, count_answers, count_users_answers)
-
         # добавляем необходимые права для групп
         permissions = Permission.objects.filter(
             name__in=['Can view answer', 'Can view question',
@@ -51,9 +49,9 @@ class Command(BaseCommand):
         self.stdout.write(self.style.HTTP_NOT_MODIFIED('Группы добавлены'))
 
         # добавляем админа
-        User.objects.create_superuser(email='admin@mail.ru',
-                                      username='admin',
-                                      password='admin')
+        admin = User.objects.create_superuser(email='admin@mail.ru',
+                                              username='admin',
+                                              password='admin')
 
         self.stdout.write(self.style.HTTP_NOT_MODIFIED('Админ добавлен'))
 
@@ -79,7 +77,7 @@ class Command(BaseCommand):
             quiz = Quiz.objects.create(name=one_quiz, slug=one_quiz,
                                        date_stop=timezone.now(),
                                        description=fake.text(),
-                                       creator_id=1)
+                                       creator=admin)
 
             # добавляем к опросу группы, для которых он предназначен
             quiz.group.add(random.choice(groups_objects))

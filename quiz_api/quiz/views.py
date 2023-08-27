@@ -1,4 +1,3 @@
-from django.contrib.auth.models import Group
 from django.db.models import Count
 from rest_framework.generics import RetrieveAPIView, ListAPIView, ListCreateAPIView, \
     RetrieveUpdateDestroyAPIView
@@ -55,7 +54,7 @@ class QuestionList(ListAPIView):
         return Question.objects.filter(quiz__slug=slug)
 
 
-# <slug:slug>/questions/<int:pk>w
+# <slug:slug>/questions/<int:pk>
 # добавляет ответы пользователя
 class AddAnswer(APIView):
     permission_classes = [IsAuthenticated, IsGroup]
