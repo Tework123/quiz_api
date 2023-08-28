@@ -20,7 +20,7 @@ class QuizList(ListAPIView):
     serializer_class = QuizListSerializer
 
     def get_queryset(self):
-        return Quiz.objects.all()
+        return Quiz.objects.all().prefetch_related('group')
 
 
 # <slug:slug>/
@@ -38,34 +38,43 @@ class QuizDetail(RetrieveAPIView):
 # <slug:slug>/questions
 # показывает все вопросы, вместе с ответами конкретного пользователя
 class QuestionList(ListAPIView):
-    permission_classes = [IsAuthenticated, IsGroup]
+    permission_classes = [IsAuthenticated, IsGroup | IsAdminUser]
     serializer_class = QuestionListSerializerThird
     lookup_field = 'slug'
 
     # добавляем в начало возвращаемого из сериализатора списка user_id
     def list(self, request, *args, **kwargs):
         response = super().list(request, *args, **kwargs)
-        response.data.insert(0, {'user_id': self.request.user.id})
+
+        # без пагинации
+        # response.data.insert(0, {'user_id': self.request.user.id})
+
+        # с пагинацией
+        response.data['current_user_id'] = self.request.user.id
+        response.data.move_to_end('current_user_id', last=False)
+
         return response
 
     def get_queryset(self):
         slug = self.kwargs.get(self.lookup_field)
 
-        return Question.objects.filter(quiz__slug=slug)
+        return (Question.objects.filter(quiz__slug=slug)
+                .prefetch_related('answer_list', 'answer_list__result_answer_list'))
 
 
 # <slug:slug>/questions/<int:pk>
 # добавляет ответы пользователя
 class AddAnswer(APIView):
-    permission_classes = [IsAuthenticated, IsGroup]
+    permission_classes = [IsAuthenticated, IsGroup | IsAdminUser]
 
     def post(self, request, *args, **kwargs):
+        # kwargs['pk'] - id ответа, а не id вопроса
         old_answer = ResultAnswer.objects.filter(user=self.request.user, answer_id=kwargs['pk'])
         if old_answer:
             return Response({'old_answer': 'Вы уже выбрали этот ответ'})
 
         # достаем вопрос к которому принадлежит id выбранного ответа
-        question = Question.objects.get(answer_list=1)
+        question = Question.objects.get(answer_list=kwargs['pk'])
 
         # по id вопроса достаем все уже раннее сделанные ответы на этот вопрос и удаляем их
         ResultAnswer.objects.filter(answer__question=question.id,
@@ -74,7 +83,7 @@ class AddAnswer(APIView):
         # создаем новый ответ, user - тот, кто проходит тест,
         # answer_id - id ответа, на который он нажал
         ResultAnswer.objects.create(user=self.request.user, answer_id=kwargs['pk'])
-        return Response({'new_answer': 'hello'})
+        return Response({'Ваш ответ записан': 'спасибо'})
 
 
 # statistics/
@@ -103,7 +112,9 @@ class QuizDetailStatistics(ListAPIView):
     def get_queryset(self):
         slug = self.kwargs.get(self.lookup_field)
 
-        response = Question.objects.filter(quiz__slug=slug)
+        response = (Question.objects.filter(quiz__slug=slug)
+                    .prefetch_related('answer_list', 'answer_list__result_answer_list'))
+
         return response
 
 
@@ -111,7 +122,8 @@ class QuizDetailStatistics(ListAPIView):
 # создает опрос(как админка)
 class CreateQuiz(ListCreateAPIView):
     permission_classes = [IsAdminUser]
-    queryset = Quiz.objects.all()
+    queryset = Quiz.objects.all().prefetch_related('group')
+
     serializer_class = CreateQuizSerializer
 
     def create(self, request, *args, **kwargs):
