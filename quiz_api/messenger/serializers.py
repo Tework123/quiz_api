@@ -10,6 +10,13 @@ class ChatListSerializer(ModelSerializer):
         fields = '__all__'
 
 
+class ChatDetailSerializer(ModelSerializer):
+    class Meta:
+        model = Chat
+        fields = '__all__'
+
+
+
 class ChatMessageListSerializer(ModelSerializer):
     class Meta:
         model = Message

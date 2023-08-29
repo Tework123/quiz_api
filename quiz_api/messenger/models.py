@@ -13,7 +13,7 @@ class Relationship(models.Model):
 
 class Chat(models.Model):
     name = models.CharField(max_length=100)
-    close = models.BooleanField()
+    close = models.BooleanField(default=False)
     user = models.ManyToManyField(User)
 
     def __str__(self):
