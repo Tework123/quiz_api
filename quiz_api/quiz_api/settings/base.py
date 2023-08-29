@@ -19,6 +19,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'quiz.apps.QuizConfig',
     'register.apps.RegisterConfig',
+    'messenger.apps.MessengerConfig',
 
 ]
 
@@ -76,8 +77,8 @@ REST_FRAMEWORK = {
         # надо удалить нижнюю строку, чтобы убрать графический апи
         'rest_framework.renderers.BrowsableAPIRenderer',
     ],
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-    'PAGE_SIZE': 10,
+    # 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    # 'PAGE_SIZE': 10,
 
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.BasicAuthentication',
