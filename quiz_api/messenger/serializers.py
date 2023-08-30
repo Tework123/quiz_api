@@ -16,20 +16,25 @@ class ChatDetailSerializer(ModelSerializer):
         fields = '__all__'
 
 
-
 class ChatMessageListSerializer(ModelSerializer):
     class Meta:
         model = Message
-        fields = '__all__'
+        fields = ['id', 'text', 'attachment', 'user', ]
+
+
+class ChatMessageDetailSerializer(ModelSerializer):
+    class Meta:
+        model = Message
+        fields = ['id', 'text', 'attachment']
 
 
 class DialogListSerializer(ModelSerializer):
     class Meta:
         model = Relationship
-        fields = '__all__'
+        fields = ['id', 'user_2', 'status']
 
 
-class MessageListSerializer(ModelSerializer):
+class DialogMessageListSerializer(ModelSerializer):
     class Meta:
         model = Message
         fields = '__all__'

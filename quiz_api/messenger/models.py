@@ -37,4 +37,4 @@ class Message(models.Model):
     data_create = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'{self.user}, {self.text}'
+        return f'{self.pk}. {self.user}, {self.text}'
