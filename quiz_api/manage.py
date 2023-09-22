@@ -6,6 +6,9 @@ from dotenv import load_dotenv
 def main():
     load_dotenv()
     env = os.environ.get('ENV')
+
+    if 'test' in sys.argv:
+        os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'quiz_api.settings.testing')
     if env == 'production':
         os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'quiz_api.settings.production')
     if env == 'development':
