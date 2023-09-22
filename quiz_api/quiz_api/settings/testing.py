@@ -1,9 +1,13 @@
+import sys
+
 from .base import *
 from dotenv import load_dotenv
 
 load_dotenv()
 
-DEBUG = True
+DEBUG = False
+TEMPLATE_DEBUG = False
+
 ALLOWED_HOSTS = []
 
 DATABASES = {
@@ -16,5 +20,6 @@ DATABASES = {
         'PORT': os.environ.get('PORT'),
     }
 }
+
 
 # python manage.py runserver --settings=quiz_api.settings.development
